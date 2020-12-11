@@ -1,0 +1,4 @@
+[submodule "api"]
+	path = api
+	url = git@github.com:ichigozero/ekidata.git
+	branch = master
