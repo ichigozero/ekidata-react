@@ -11,17 +11,17 @@ import SearchByPrefecture from './SearchByPrefecture';
 class App extends Component {
   render() {
     return (
-      <BrowserRouter>
-      <div>
+      <main role="main" className="container">
+        <BrowserRouter>
         <Navigation/>
         <Switch>
-          <Route path="/" component={Home} exact/>
+          <Route exact path="/" component={Home}/>
           <Route path="/search-by-location" component={SearchByLocation}/>
           <Route path="/search-by-prefecture" component={SearchByPrefecture}/>
           <Route component={Error}/>
         </Switch>
-      </div>
-      </BrowserRouter>
+        </BrowserRouter>
+      </main>
     );
   }
 }

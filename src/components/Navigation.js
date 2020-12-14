@@ -1,14 +1,25 @@
 import React from 'react';
 
-import {NavLink} from 'react-router-dom';
+import {Nav, Navbar} from 'react-bootstrap';
+import {IndexLinkContainer, LinkContainer} from 'react-router-bootstrap';
 
 const Navigation = () => {
   return (
-    <div>
-      <NavLink to='/'>ホーム</NavLink>
-      <NavLink to='/search-by-location'>最寄り駅</NavLink>
-      <NavLink to='/search-by-prefecture'>都道府県で探す</NavLink>
-    </div>
+    <Navbar bg="dark" variant="dark">
+      <Navbar.Collapse id="basic-navbar-nav">
+      <Nav className="mr-auto">
+        <IndexLinkContainer to='/'>
+          <Nav.Link>ホーム</Nav.Link>
+        </IndexLinkContainer>
+        <LinkContainer to='/search-by-location'>
+          <Nav.Link>最寄り駅</Nav.Link>
+        </LinkContainer>
+        <LinkContainer to='/search-by-prefecture'>
+          <Nav.Link>都道府県で探す</Nav.Link>
+        </LinkContainer>
+      </Nav>
+      </Navbar.Collapse>
+    </Navbar>
   );
 }
 
