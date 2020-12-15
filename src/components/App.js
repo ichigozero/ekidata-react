@@ -14,12 +14,14 @@ class App extends Component {
       <main role="main" className="container">
         <BrowserRouter>
         <Navigation/>
-        <Switch>
-          <Route exact path="/" component={Home}/>
-          <Route path="/search-by-location" component={SearchByLocation}/>
-          <Route path="/search-by-prefecture" component={SearchByPrefecture}/>
-          <Route component={Error}/>
-        </Switch>
+        <div class="mt-4 ml-4 mr-4">
+          <Switch>
+            <Route exact path="/" component={Home}/>
+            <Route path="/search-by-location" component={SearchByLocation}/>
+            <Route path="/search-by-prefecture" component={SearchByPrefecture}/>
+            <Route component={Error}/>
+          </Switch>
+        </div>
         </BrowserRouter>
       </main>
     );

@@ -1,11 +1,11 @@
-import React from 'react';
+import React, {Component} from 'react';
 
-const SearchByLocation = () => {
-  return (
-    <div>
+class SearchByLocation extends Component {
+  render() {
+    return (
       <p>現在の位置で最寄り駅を検索</p>
-    </div>
-  );
+    );
+  }
 }
 
 export default SearchByLocation;
