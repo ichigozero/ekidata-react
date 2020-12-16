@@ -24,15 +24,50 @@ class SearchByLocation extends Component {
   state = {
     latitude: 35.655164046,
     longitude: 139.740663704,
-    distance: 1,
+    distance: '1.0',
+    stations: [],
   };
+
+  getApiUri({longitude, latitude, distance}) {
+    return (
+      '/ekidata/api/v2.0' +
+      '/longitude/' + longitude +
+      '/latitude/' + latitude +
+      '/max-distance/' + distance +
+      '/stations'
+    );
+  }
+
+  componentDidMount() {
+    const apiUri = this.getApiUri(this.state);
+
+    fetch(apiUri)
+      .then((response) => response.json())
+      .then((data) => {
+        const {stations} = data;
+        this.setState({stations});
+      });
+  }
 
   handleSubmit() {
     return;
   }
 
   render() {
-    const position = [this.state.latitude, this.state.longitude];
+    const {latitude, longitude, stations} = this.state;
+    const position = [latitude, longitude];
+
+    function placeMarkers() {
+      let markers = [];
+
+      stations.forEach((station) => {
+        const {latitude, longitude} = station.location;
+        const marker = <Marker position={[latitude, longitude]}/>;
+        markers.push(marker);
+      });
+
+      return markers;
+    };
 
     return (
       <>
@@ -66,10 +101,10 @@ class SearchByLocation extends Component {
                     as="select"
                     defaultValue="1km以内"
                   >
-                    <option value="1">1km以内</option>
-                    <option value="5">5km以内</option>
-                    <option value="10">10km以内</option>
-                    <option value="20">20km以内</option>
+                    <option value="1.0">1km以内</option>
+                    <option value="5.0">5km以内</option>
+                    <option value="10.0">10km以内</option>
+                    <option value="20.0">20km以内</option>
                   </Form.Control>
                 </Form.Group>
               </Form.Row>
@@ -88,6 +123,7 @@ class SearchByLocation extends Component {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <Marker position={position}/>
+            {placeMarkers()}
           </MapContainer>
         </div>
       </>
