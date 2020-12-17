@@ -5,7 +5,7 @@ import Col from 'react-bootstrap/Col'
 import Form from 'react-bootstrap/Form';
 
 import L from 'leaflet';
-import {MapContainer, TileLayer, Marker} from 'react-leaflet';
+import {MapContainer, TileLayer, Marker, Popup} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css'
 
 import '../css/SearchByLocation.css';
@@ -60,9 +60,32 @@ class SearchByLocation extends Component {
     function placeMarkers() {
       let markers = [];
 
+      function showLineNames(lines) {
+        const lineNames = [];
+
+        for (const key in lines) {
+          const lineName = <div>・{lines[key]}</div>
+          lineNames.push(lineName);
+        }
+
+        return lineNames;
+      }
+
       stations.forEach((station) => {
+        const {common_name, distance, lines} = station;
         const {latitude, longitude} = station.location;
-        const marker = <Marker position={[latitude, longitude]}/>;
+        const marker = (
+          <Marker position={[latitude, longitude]}>
+            <Popup>
+              <h5>{common_name}駅</h5>
+              <div className="mt-1">距離: {distance.toFixed(2)}km</div>
+              <div>
+                <div>線路:</div>
+                {showLineNames(lines)}
+              </div>
+            </Popup>
+          </Marker>
+        );
         markers.push(marker);
       });
 
