@@ -5,7 +5,7 @@ import Col from 'react-bootstrap/Col'
 import Form from 'react-bootstrap/Form';
 
 import L from 'leaflet';
-import {MapContainer, TileLayer, Marker, Popup} from 'react-leaflet';
+import {MapContainer, TileLayer, Marker, Popup, useMap} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css'
 
 import '../css/SearchByLocation.css';
@@ -86,6 +86,7 @@ class SearchByLocation extends Component {
 
   render() {
     const {latitude, longitude, stations} = this.state.map;
+    const position = [latitude, longitude];
 
     function placeMarkers() {
       let markers = [];
@@ -169,11 +170,8 @@ class SearchByLocation extends Component {
           </div>
         </div>
         <div className="row mt-4">
-          <MapContainer
-              center={[latitude, longitude]}
-              zoom={13}
-              scrollWheelZoom={false}
-            >
+          <MapContainer center={position} zoom={13} scrollWheelZoom={false}>
+            <UpdateMap position={position}/>
             <TileLayer
               attribution='
                 &copy;
@@ -182,13 +180,19 @@ class SearchByLocation extends Component {
               '
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Marker position={[latitude, longitude]}/>
+            <Marker position={position}/>
             {placeMarkers()}
           </MapContainer>
         </div>
       </>
     );
   }
+}
+
+function UpdateMap({position}) {
+  const map = useMap();
+  map.panTo(position);
+  return null;
 }
 
 export default SearchByLocation;

@@ -14,7 +14,7 @@ class App extends Component {
       <main role="main" className="container">
         <BrowserRouter>
         <Navigation/>
-        <div class="mt-4 ml-4 mr-4 mb-5">
+        <div className="mt-4 ml-4 mr-4 mb-5">
           <Switch>
             <Route exact path="/" component={Home}/>
             <Route path="/search-by-location" component={SearchByLocation}/>
