@@ -21,12 +21,22 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 class SearchByLocation extends Component {
-  state = {
-    latitude: 35.655164046,
-    longitude: 139.740663704,
-    distance: '1.0',
-    stations: [],
-  };
+  constructor() {
+    super();
+
+    this.state = {
+      form: {
+        latitude: 35.655164046,
+        longitude: 139.740663704,
+        distance: '1.0',
+      },
+    };
+
+    this.state['map'] = {
+      ...this.state.form,
+      stations: []
+    };
+  }
 
   getApiUri({longitude, latitude, distance}) {
     return (
@@ -38,24 +48,44 @@ class SearchByLocation extends Component {
     );
   }
 
-  componentDidMount() {
-    const apiUri = this.getApiUri(this.state);
+  handleChange = (event) => {
+    const value = event.target.value;
+    const name = event.target.name;
+
+    this.setState({
+      form: {
+        ...this.state.form,
+        [name]: value,
+      }
+    });
+  }
+
+  handleSubmit = (event) => {
+    event.preventDefault();
+
+    this.setState({
+      map: {
+        ...this.state.form,
+        stations: []
+      }
+    });
+
+    const apiUri = this.getApiUri(this.state.form);
 
     fetch(apiUri)
       .then((response) => response.json())
       .then((data) => {
-        const {stations} = data;
-        this.setState({stations});
+        this.setState({
+          map: {
+            ...this.state.map,
+            stations: data.stations,
+          }
+        });
       });
   }
 
-  handleSubmit() {
-    return;
-  }
-
   render() {
-    const {latitude, longitude, stations} = this.state;
-    const position = [latitude, longitude];
+    const {latitude, longitude, stations} = this.state.map;
 
     function placeMarkers() {
       let markers = [];
@@ -106,6 +136,7 @@ class SearchByLocation extends Component {
                   <Form.Control
                     name="latitude"
                     placeholder="35.655164046"
+                    onChange={this.handleChange}
                   />
                 </Form.Group>
 
@@ -114,6 +145,7 @@ class SearchByLocation extends Component {
                   <Form.Control
                     name="longitude"
                     placeholder="139.740663704"
+                    onChange={this.handleChange}
                   />
                 </Form.Group>
 
@@ -123,6 +155,7 @@ class SearchByLocation extends Component {
                     name="distance"
                     as="select"
                     defaultValue="1km以内"
+                    onChange={this.handleChange}
                   >
                     <option value="1.0">1km以内</option>
                     <option value="5.0">5km以内</option>
@@ -136,7 +169,11 @@ class SearchByLocation extends Component {
           </div>
         </div>
         <div className="row mt-4">
-          <MapContainer center={position} zoom={13} scrollWheelZoom={false}>
+          <MapContainer
+              center={[latitude, longitude]}
+              zoom={13}
+              scrollWheelZoom={false}
+            >
             <TileLayer
               attribution='
                 &copy;
@@ -145,7 +182,7 @@ class SearchByLocation extends Component {
               '
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Marker position={position}/>
+            <Marker position={[latitude, longitude]}/>
             {placeMarkers()}
           </MapContainer>
         </div>
