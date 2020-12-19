@@ -30,6 +30,11 @@ class SearchByLocation extends Component {
         longitude: 139.740663704,
         distance: '1.0',
       },
+      validation: {
+        latitude: true,
+        longitude: true,
+        distance: true,
+      }
     };
 
     this.state['map'] = {
@@ -52,16 +57,32 @@ class SearchByLocation extends Component {
     const value = event.target.value;
     const name = event.target.name;
 
+    let isValid = true;
+
+    if (name === 'latitude') {
+      isValid = /^(4[0-5]|[2-3][0-9])\.?\d{0,8}$/.test(value);
+    }
+
+    if (name === 'longitude') {
+      isValid = /^(15[0-3]|1[34][0-9]|12[2-9])\.?\d{0,8}$/.test(value);
+    }
+
     this.setState({
       form: {
         ...this.state.form,
         [name]: value,
+      },
+      validation: {
+        ...this.state.validation,
+        [name]: isValid,
       }
     });
   }
 
   handleSubmit = (event) => {
     event.preventDefault();
+
+    if (!Object.values(this.state.validation).every(Boolean)) return;
 
     this.setState({
       map: {
@@ -138,7 +159,11 @@ class SearchByLocation extends Component {
                     name="latitude"
                     placeholder="35.655164046"
                     onChange={this.handleChange}
+                    isInvalid={!this.state.validation.latitude}
                   />
+                  <Form.Control.Feedback type="invalid">
+                    20〜45の範囲で入力してください！
+                  </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group as={Col} controlId="longitude">
@@ -147,7 +172,11 @@ class SearchByLocation extends Component {
                     name="longitude"
                     placeholder="139.740663704"
                     onChange={this.handleChange}
+                    isInvalid={!this.state.validation.longitude}
                   />
+                  <Form.Control.Feedback type="invalid">
+                    122〜153の範囲で入力してください！
+                  </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group as={Col} controlId="formGridState">
@@ -159,9 +188,9 @@ class SearchByLocation extends Component {
                     onChange={this.handleChange}
                   >
                     <option value="1.0">1km以内</option>
+                    <option value="2.0">2km以内</option>
                     <option value="5.0">5km以内</option>
                     <option value="10.0">10km以内</option>
-                    <option value="20.0">20km以内</option>
                   </Form.Control>
                 </Form.Group>
               </Form.Row>
