@@ -96,13 +96,16 @@ class SearchByLocation extends Component {
     fetch(apiUri)
       .then((response) => response.json())
       .then((data) => {
-        this.setState({
-          map: {
-            ...this.state.map,
-            stations: data.stations,
-          }
-        });
-      });
+        if ('stations' in data) {
+          this.setState({
+            map: {
+              ...this.state.map,
+              stations: data.stations,
+            }
+          });
+        }
+      })
+      .catch(error => alert(error.message));
   }
 
   render() {
