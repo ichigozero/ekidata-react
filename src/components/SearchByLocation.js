@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 
+import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col'
 import Form from 'react-bootstrap/Form';
@@ -34,7 +35,8 @@ class SearchByLocation extends Component {
         latitude: true,
         longitude: true,
         distance: true,
-      }
+      },
+      showMessage: false,
     };
 
     this.state['map'] = {
@@ -86,8 +88,8 @@ class SearchByLocation extends Component {
 
     this.setState({
       map: {
-        ...this.state.form,
-        stations: []
+        ...this.state.map,
+        ...this.state.form
       }
     });
 
@@ -101,14 +103,32 @@ class SearchByLocation extends Component {
             map: {
               ...this.state.map,
               stations: data.stations,
+            },
+            showMessage: true
+          });
+        } else {
+          this.setState({
+            map: {
+              ...this.state.map,
+              stations: []
             }
           });
         }
       })
-      .catch(error => alert(error.message));
+      .catch((error) => {
+        alert(error.message)
+
+        this.setState({
+          map: {
+            ...this.state.map,
+            stations: []
+          }
+        });
+      });
   }
 
   render() {
+    const {showMessage} = this.state;
     const {latitude, longitude, stations} = this.state.map;
     const position = [latitude, longitude];
 
@@ -146,6 +166,27 @@ class SearchByLocation extends Component {
 
       return markers;
     };
+
+    function showUserMessage() {
+      if (showMessage) {
+        let variant = 'danger';
+        const stationCount = stations.length;
+
+        if (stationCount > 0) {
+          variant = 'success';
+        }
+
+        return (
+          <div className="row mt-4">
+            <div className="col px-0">
+              <Alert key={`alert-${variant}`} variant={variant}>
+                {stationCount} 件見つかりました！
+              </Alert>
+            </div>
+          </div>
+        )
+      }
+    }
 
     return (
       <>
@@ -201,7 +242,8 @@ class SearchByLocation extends Component {
             </Form>
           </div>
         </div>
-        <div className="row mt-4">
+        {showUserMessage()}
+        <div className="row mt-2">
           <MapContainer center={position} zoom={13} scrollWheelZoom={false}>
             <UpdateMap position={position}/>
             <TileLayer
