@@ -123,11 +123,11 @@ class SearchByLocation extends Component {
         return lineNames;
       }
 
-      stations.forEach((station) => {
+      stations.forEach((station, index) => {
         const {common_name, distance, lines} = station;
         const {latitude, longitude} = station.location;
         const marker = (
-          <Marker position={[latitude, longitude]}>
+          <Marker key={`marker-${index + 2}`} position={[latitude, longitude]}>
             <Popup>
               <h5>{common_name}駅</h5>
               <div className="mt-1">距離: {distance.toFixed(2)}km</div>
@@ -209,7 +209,7 @@ class SearchByLocation extends Component {
               '
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Marker position={position}/>
+            <Marker key="marker-1" position={position}/>
             {placeMarkers()}
           </MapContainer>
         </div>
