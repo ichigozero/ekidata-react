@@ -45,12 +45,16 @@ class SearchByPrefecture extends Component {
         }
       });
     } else if(name === 'line') {
-      this.setState({
-        stations: {
-          data: [],
-          formEnabled: false
-        }
-      });
+      if (value === '') {
+        this.setState({
+          stations: {
+            data: [],
+            formEnabled: false
+          }
+        });
+      } else {
+        this.fetchStations(value);
+      }
     } else {
 
     }
@@ -66,6 +70,24 @@ class SearchByPrefecture extends Component {
         this.setState({
           lines: {
             data: data.lines,
+            formEnabled: true
+          }
+        });
+      }
+    })
+    .catch((error) => alert(error.message));
+  }
+
+  fetchStations = (lineId) => {
+    const apiUri = `/ekidata/api/v1.0/lines/${lineId}/stations`;
+
+    fetch(apiUri)
+    .then(response => response.json())
+    .then((data) => {
+      if ('stations' in data) {
+        this.setState({
+          stations: {
+            data: data.stations,
             formEnabled: true
           }
         });
@@ -144,6 +166,7 @@ function SearchForm({prefectures, lines, stations, handleChange}) {
             onChange={handleChange}
           >
             <option value="">駅を選択</option>
+            <OptionStations stations={stations.data}/>
          </Form.Control>
         </Form.Group>
       </Form.Row>
@@ -177,6 +200,23 @@ function OptionLines({lines}) {
         key={`line-${index + 1}`}
         value={line.id}
       >{line.common_name}
+      </option>
+    )
+    options.push(option);
+  });
+
+  return options;
+}
+
+function OptionStations({stations}) {
+  const options = [];
+
+  stations.forEach((station, index) => {
+    const option = (
+      <option
+        key={`station-${index + 1}`}
+        value={station.id}
+      >{station.common_name}
       </option>
     )
     options.push(option);
