@@ -47,23 +47,20 @@ class SearchByPrefecture extends Component {
     const name = event.target.name;
 
     if (name === 'prefecture') {
-      if (value === '') {
-        this.setState({
-          lines: {
-            data: [],
-            formEnabled: false
-          },
-        });
-      } else {
-        this.fetchLines(value);
-      }
-
       this.setState({
+        lines: {
+          data: [],
+          formEnabled: false
+        },
         stations: {
           data: [],
           formEnabled: false
         }
       });
+
+      if (value !== '') {
+        this.fetchLines(value);
+      }
     } else if(name === 'line') {
       if (value === '') {
         this.setState({
@@ -166,7 +163,7 @@ class SearchByPrefecture extends Component {
         {render &&
         (
           <div className="row mt-4">
-            <DisplayMap station={station} zoom={13}/>
+            <DisplayMap station={station} zoom={16}/>
           </div>
         )
         }
