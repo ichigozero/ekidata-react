@@ -3,6 +3,22 @@ import React, {Component} from 'react'
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 
+import L from 'leaflet';
+import {MapContainer, TileLayer, Marker, Popup, useMap} from 'react-leaflet';
+import 'leaflet/dist/leaflet.css'
+
+import '../css/LeafletMap.css';
+
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
 const prefectureApiUri = '/ekidata/api/v1.0/prefectures';
 
 class SearchByPrefecture extends Component {
@@ -18,7 +34,11 @@ class SearchByPrefecture extends Component {
       stations: {
         data: [],
         formEnabled: false,
-      }
+      },
+      map: {
+        station: null,
+        render: false,
+      },
     }
   }
 
@@ -56,7 +76,24 @@ class SearchByPrefecture extends Component {
         this.fetchStations(value);
       }
     } else {
+      if (value === '') {
+        this.setState({
+          map: {
+            station: null,
+            render: false
+          }
+        });
+      } else {
+        const index = event.target.selectedIndex;
+        const station = this.state.stations.data[index - 1];
 
+        this.setState({
+          map: {
+            station: station,
+            render: true
+          }
+        });
+      }
     }
   }
 
@@ -109,6 +146,7 @@ class SearchByPrefecture extends Component {
 
   render() {
     const {prefectures, lines, stations} = this.state;
+    const {station, render} = this.state.map;
 
     return  (
       <>
@@ -125,6 +163,13 @@ class SearchByPrefecture extends Component {
             />
           </div>
         </div>
+        {render &&
+        (
+          <div className="row mt-4">
+            <DisplayMap station={station} zoom={13}/>
+          </div>
+        )
+        }
       </>
     );
   }
@@ -223,6 +268,35 @@ function OptionStations({stations}) {
   });
 
   return options;
+}
+
+function DisplayMap({station, zoom}) {
+  const position = [station.latitude, station.longitude];
+
+  return (
+    <MapContainer center={position} zoom={zoom} scrollWheelZoom={false}>
+      <UpdateMap position={position}/>
+      <TileLayer
+        attribution='
+          &copy;
+          <a href="http://osm.org/copyright">OpenStreetMap</a>
+          contributors
+        '
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <Marker key="marker-1" position={position}>
+        <Popup>
+          <h5>{station.common_name}駅</h5>
+       </Popup>
+      </Marker>
+    </MapContainer>
+  )
+}
+
+function UpdateMap({position}) {
+  const map = useMap();
+  map.panTo(position);
+  return null;
 }
 
 export default SearchByPrefecture;

@@ -9,7 +9,7 @@ import L from 'leaflet';
 import {MapContainer, TileLayer, Marker, Popup, useMap} from 'react-leaflet';
 import 'leaflet/dist/leaflet.css'
 
-import '../css/SearchByLocation.css';
+import '../css/LeafletMap.css';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
