@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, useState, useEffect} from 'react';
 
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -43,6 +43,12 @@ class SearchByLocation extends Component {
       ...this.state.form,
       stations: []
     };
+  }
+
+  toggleMessage = () => {
+    this.setState({
+      showMessage: !this.state.showMessage
+    });
   }
 
   getApiUri({longitude, latitude, distance}) {
@@ -111,7 +117,8 @@ class SearchByLocation extends Component {
             map: {
               ...this.state.map,
               stations: []
-            }
+            },
+            showMessage: true
           });
         }
       })
@@ -132,62 +139,6 @@ class SearchByLocation extends Component {
     const {latitude, longitude, stations} = this.state.map;
     const position = [latitude, longitude];
 
-    function placeMarkers() {
-      let markers = [];
-
-      function showLineNames(lines) {
-        const lineNames = [];
-
-        for (const key in lines) {
-          const lineName = <div>・{lines[key]}</div>
-          lineNames.push(lineName);
-        }
-
-        return lineNames;
-      }
-
-      stations.forEach((station, index) => {
-        const {common_name, distance, lines} = station;
-        const {latitude, longitude} = station.location;
-        const marker = (
-          <Marker key={`marker-${index + 2}`} position={[latitude, longitude]}>
-            <Popup>
-              <h5>{common_name}駅</h5>
-              <div className="mt-1">距離: {distance.toFixed(2)}km</div>
-              <div>
-                <div>線路:</div>
-                {showLineNames(lines)}
-              </div>
-            </Popup>
-          </Marker>
-        );
-        markers.push(marker);
-      });
-
-      return markers;
-    };
-
-    function showUserMessage() {
-      if (showMessage) {
-        let variant = 'danger';
-        const stationCount = stations.length;
-
-        if (stationCount > 0) {
-          variant = 'success';
-        }
-
-        return (
-          <div className="row mt-4">
-            <div className="col px-0">
-              <Alert key={`alert-${variant}`} variant={variant}>
-                {stationCount} 件見つかりました！
-              </Alert>
-            </div>
-          </div>
-        )
-      }
-    }
-
     return (
       <>
         <div className="row">
@@ -195,72 +146,130 @@ class SearchByLocation extends Component {
         </div>
         <div className="row">
           <div className="col px-0">
-            <Form onSubmit={this.handleSubmit}>
-              <Form.Row>
-                <Form.Group as={Col} controlId="latitude">
-                  <Form.Label>緯度</Form.Label>
-                  <Form.Control
-                    name="latitude"
-                    placeholder="35.655164046"
-                    onChange={this.handleChange}
-                    isInvalid={!this.state.validation.latitude}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    20〜45の範囲で入力してください！
-                  </Form.Control.Feedback>
-                </Form.Group>
-
-                <Form.Group as={Col} controlId="longitude">
-                  <Form.Label>経度</Form.Label>
-                  <Form.Control
-                    name="longitude"
-                    placeholder="139.740663704"
-                    onChange={this.handleChange}
-                    isInvalid={!this.state.validation.longitude}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    122〜153の範囲で入力してください！
-                  </Form.Control.Feedback>
-                </Form.Group>
-
-                <Form.Group as={Col} controlId="formGridState">
-                  <Form.Label>距離</Form.Label>
-                  <Form.Control
-                    name="distance"
-                    as="select"
-                    defaultValue="1km以内"
-                    onChange={this.handleChange}
-                  >
-                    <option value="1.0">1km以内</option>
-                    <option value="2.0">2km以内</option>
-                    <option value="5.0">5km以内</option>
-                    <option value="10.0">10km以内</option>
-                  </Form.Control>
-                </Form.Group>
-              </Form.Row>
-              <Button variant="primary" type="submit">検索</Button>
-            </Form>
+            <SearchForm
+              validation={this.state.validation}
+              handleChange={this.handleChange}
+              handleSubmit={this.handleSubmit}
+            />
           </div>
         </div>
-        {showUserMessage()}
+        <UserMessage
+          showMessage={showMessage}
+          stations={stations}
+          toggleMessage={this.toggleMessage}
+        />
         <div className="row mt-2">
-          <MapContainer center={position} zoom={13} scrollWheelZoom={false}>
-            <UpdateMap position={position}/>
-            <TileLayer
-              attribution='
-                &copy;
-                <a href="http://osm.org/copyright">OpenStreetMap</a>
-                contributors
-              '
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker key="marker-1" position={position}/>
-            {placeMarkers()}
-          </MapContainer>
-        </div>
+          <DisplayMap
+            center={position}
+            zoom={13}
+            stations={stations}
+          />
+       </div>
       </>
     );
   }
+}
+
+function SearchForm({validation, handleChange, handleSubmit}) {
+  return (
+    <Form onSubmit={handleSubmit}>
+      <Form.Row>
+        <Form.Group as={Col} controlId="latitude">
+          <Form.Label>緯度</Form.Label>
+          <Form.Control
+            name="latitude"
+            value="35.655164046"
+            onChange={handleChange}
+            isInvalid={!validation.latitude}
+          />
+          <Form.Control.Feedback type="invalid">
+            20〜45の範囲で入力してください！
+          </Form.Control.Feedback>
+        </Form.Group>
+
+        <Form.Group as={Col} controlId="longitude">
+          <Form.Label>経度</Form.Label>
+          <Form.Control
+            name="longitude"
+            value="139.740663704"
+            onChange={handleChange}
+            isInvalid={!validation.longitude}
+          />
+          <Form.Control.Feedback type="invalid">
+            122〜153の範囲で入力してください！
+          </Form.Control.Feedback>
+        </Form.Group>
+
+        <Form.Group as={Col} controlId="formGridState">
+          <Form.Label>距離</Form.Label>
+          <Form.Control
+            name="distance"
+            as="select"
+            defaultValue="1km以内"
+            onChange={handleChange}
+          >
+            <option value="1.0">1km以内</option>
+            <option value="2.0">2km以内</option>
+            <option value="5.0">5km以内</option>
+            <option value="10.0">10km以内</option>
+          </Form.Control>
+        </Form.Group>
+      </Form.Row>
+      <Button variant="primary" type="submit">検索</Button>
+    </Form>
+  )
+}
+
+function UserMessage({showMessage, stations, toggleMessage}) {
+  const [show, setShow] = useState(showMessage);
+
+  useEffect(() => {setShow(showMessage)}, [showMessage])
+
+  if (show) {
+    let variant = 'danger';
+    let message = 'お探しの駅が見つかりません！';
+    const stationCount = stations.length;
+
+    if (stationCount > 0) {
+      variant = 'success';
+      message = `${stationCount} 件見つかりました！`
+    }
+
+    return (
+      <div className="row mt-4">
+        <div className="col px-0">
+          <Alert
+            key={`alert-${variant}`}
+            variant={variant}
+            onClose={toggleMessage}
+            dismissible
+          >
+            {message}
+          </Alert>
+        </div>
+      </div>
+    )
+  }
+
+  return null;
+}
+
+function DisplayMap({center, zoom, stations}) {
+  return (
+    <MapContainer center={center} zoom={zoom} scrollWheelZoom={false}>
+      <UpdateMap position={center}/>
+      <TileLayer
+        attribution='
+          &copy;
+          <a href="http://osm.org/copyright">OpenStreetMap</a>
+          contributors
+        '
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <Marker key="marker-1" position={center}/>
+      <StationMarkers stations={stations}/>
+    </MapContainer>
+  )
 }
 
 function UpdateMap({position}) {
@@ -268,5 +277,42 @@ function UpdateMap({position}) {
   map.panTo(position);
   return null;
 }
+
+function StationMarkers({stations}) {
+  let markers = [];
+
+  function showLineNames(lines) {
+    const lineNames = [];
+
+    for (const [key, value] of Object.entries(lines)) {
+      const lineName = <li key={key}>{value}</li>
+      lineNames.push(lineName);
+    }
+
+    return lineNames;
+  }
+
+  stations.forEach((station, index) => {
+    const {common_name, distance, lines} = station;
+    const {latitude, longitude} = station.location;
+    const marker = (
+      <Marker key={`marker-${index + 2}`} position={[latitude, longitude]}>
+        <Popup key={`popup-${index + 2}`}>
+          <h5>{common_name}駅</h5>
+          <div className="mt-1">距離: {distance.toFixed(2)}km</div>
+          <div>
+            <div>線路:</div>
+            <ul className="px-3">
+              {showLineNames(lines)}
+            </ul>
+          </div>
+        </Popup>
+      </Marker>
+    );
+    markers.push(marker);
+  });
+
+  return markers;
+};
 
 export default SearchByLocation;
