@@ -2,7 +2,9 @@ import React from 'react';
 
 const Home = () => {
   return (
-    <p>ekidataへようこそ！</p>
+    <div className="row">
+      <p>ekidataへようこそ！</p>
+    </div>
   );
 }
 
