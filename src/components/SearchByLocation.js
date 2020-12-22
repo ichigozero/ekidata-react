@@ -14,12 +14,15 @@ import '../css/LeafletMap.css';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-let DefaultIcon = L.icon({
+const DefaultIcon = L.icon({
     iconUrl: icon,
     shadowUrl: iconShadow
 });
 
 L.Marker.prototype.options.icon = DefaultIcon;
+
+const defaultLatitude = 35.655164046;
+const defaultLongitude = 139.740663704;
 
 class SearchByLocation extends Component {
   constructor() {
@@ -27,9 +30,14 @@ class SearchByLocation extends Component {
 
     this.state = {
       form: {
-        latitude: 35.655164046,
-        longitude: 139.740663704,
+        latitude: defaultLatitude,
+        longitude: defaultLongitude,
         distance: '1.0',
+      },
+      map: {
+        latitude: defaultLatitude,
+        longitude: defaultLongitude,
+        stations: [],
       },
       validation: {
         latitude: true,
@@ -37,11 +45,6 @@ class SearchByLocation extends Component {
         distance: true,
       },
       showMessage: false,
-    };
-
-    this.state['map'] = {
-      ...this.state.form,
-      stations: []
     };
   }
 
@@ -75,63 +78,39 @@ class SearchByLocation extends Component {
       isValid = /^(15[0-3]|1[34][0-9]|12[2-9])\.?\d{0,8}$/.test(value);
     }
 
-    this.setState({
-      form: {
-        ...this.state.form,
-        [name]: value,
-      },
-      validation: {
-        ...this.state.validation,
-        [name]: isValid,
-      }
-    });
+    const {form, validation} = this.state;
+
+    form[name] = value;
+    validation[name] = isValid;
+
+    this.setState({form, validation});
   }
 
-  handleSubmit = (event) => {
+  handleSubmit = async(event) => {
     event.preventDefault();
 
     if (!Object.values(this.state.validation).every(Boolean)) return;
 
-    this.setState({
-      map: {
-        ...this.state.map,
-        ...this.state.form
-      }
-    });
+    const {form, map} = this.state;
+
+    map.latitude = form.latitude;
+    map.longitude = form.longitude;
+    map.stations = [];
 
     const apiUri = this.getApiUri(this.state.form);
 
-    fetch(apiUri)
+    await fetch(apiUri)
       .then((response) => response.json())
       .then((data) => {
         if ('stations' in data) {
-          this.setState({
-            map: {
-              ...this.state.map,
-              stations: data.stations,
-            },
-            showMessage: true
-          });
-        } else {
-          this.setState({
-            map: {
-              ...this.state.map,
-              stations: []
-            },
-            showMessage: true
-          });
+          map.stations = data.stations;
         }
       })
       .catch((error) => {
         alert(error.message)
-
-        this.setState({
-          map: {
-            ...this.state.map,
-            stations: []
-          }
-        });
       });
+
+    this.setState({map, showMessage: true});
   }
 
   render() {
