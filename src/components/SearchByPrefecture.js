@@ -42,55 +42,53 @@ class SearchByPrefecture extends Component {
     }
   }
 
-  handleChange = (event) => {
+  handleChangeOnPrefectureDropdown = (event) => {
     const value = event.target.value;
-    const name = event.target.name;
 
-    if (name === 'prefecture') {
+    this.setState({
+      lines: {
+        data: [],
+        formEnabled: false
+      },
+      stations: {
+        data: [],
+        formEnabled: false
+      }
+    });
+
+    if (value !== '') {
+      this.fetchLines(value);
+    }
+  }
+
+  handleChangeOnLineDropdown = (event) => {
+    const value = event.target.value;
+
+    this.setState({
+      stations: {
+        data: [],
+        formEnabled: false
+      }
+    });
+
+    if (value !== '') {
+      this.fetchStations(value);
+    }
+  }
+
+  handleChangeOnStationDropdown = (event) => {
+    const value = event.target.value;
+
+    if (value !== '') {
+      const index = event.target.selectedIndex;
+      const station = this.state.stations.data[index - 1];
+
       this.setState({
-        lines: {
-          data: [],
-          formEnabled: false
-        },
-        stations: {
-          data: [],
-          formEnabled: false
+        map: {
+          station: station,
+          render: true
         }
       });
-
-      if (value !== '') {
-        this.fetchLines(value);
-      }
-    } else if(name === 'line') {
-      if (value === '') {
-        this.setState({
-          stations: {
-            data: [],
-            formEnabled: false
-          }
-        });
-      } else {
-        this.fetchStations(value);
-      }
-    } else {
-      if (value === '') {
-        this.setState({
-          map: {
-            station: null,
-            render: false
-          }
-        });
-      } else {
-        const index = event.target.selectedIndex;
-        const station = this.state.stations.data[index - 1];
-
-        this.setState({
-          map: {
-            station: station,
-            render: true
-          }
-        });
-      }
     }
   }
 
@@ -135,7 +133,8 @@ class SearchByPrefecture extends Component {
     .then(response => response.json())
     .then((data) => {
       if ('prefectures' in data) {
-        this.setState({prefectures: data.prefectures})
+        const {prefectures} = data;
+        this.setState({prefectures});
       }
     })
     .catch((error) => alert(error.message));
@@ -144,6 +143,11 @@ class SearchByPrefecture extends Component {
   render() {
     const {prefectures, lines, stations} = this.state;
     const {station, render} = this.state.map;
+    const handleChange = {
+      prefecture: this.handleChangeOnPrefectureDropdown,
+      line: this.handleChangeOnLineDropdown,
+      station: this.handleChangeOnStationDropdown,
+    }
 
     return  (
       <>
@@ -156,7 +160,7 @@ class SearchByPrefecture extends Component {
               prefectures={prefectures}
               lines={lines}
               stations={stations}
-              handleChange={this.handleChange}
+              handleChange={handleChange}
             />
           </div>
         </div>
@@ -181,7 +185,7 @@ function SearchForm({prefectures, lines, stations, handleChange}) {
             as="select"
             name='prefecture'
             defaultValue="都道府県を選択"
-            onChange={handleChange}
+            onChange={handleChange.prefecture}
           >
             <option value="">都道府県を選択</option>
             <OptionPrefectures prefectures={prefectures}/>
@@ -193,7 +197,7 @@ function SearchForm({prefectures, lines, stations, handleChange}) {
             name='line'
             defaultValue="路線を選択"
             disabled={!lines.formEnabled}
-            onChange={handleChange}
+            onChange={handleChange.line}
           >
             <option key='prefecture-0' value="">路線を選択</option>
             <OptionLines lines={lines.data}/>
@@ -205,7 +209,7 @@ function SearchForm({prefectures, lines, stations, handleChange}) {
             name='station'
             defaultValue="駅を選択"
             disabled={!stations.formEnabled}
-            onChange={handleChange}
+            onChange={handleChange.station}
           >
             <option value="">駅を選択</option>
             <OptionStations stations={stations.data}/>
