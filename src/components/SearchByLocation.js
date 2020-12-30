@@ -126,6 +126,7 @@ class SearchByLocation extends Component {
         <div className="row">
           <div className="col px-0">
             <SearchForm
+              formValue={this.state.form}
               validation={this.state.validation}
               handleChange={this.handleChange}
               handleSubmit={this.handleSubmit}
@@ -149,7 +150,7 @@ class SearchByLocation extends Component {
   }
 }
 
-function SearchForm({validation, handleChange, handleSubmit}) {
+function SearchForm({formValue, validation, handleChange, handleSubmit}) {
   return (
     <Form onSubmit={handleSubmit}>
       <Form.Row>
@@ -157,7 +158,7 @@ function SearchForm({validation, handleChange, handleSubmit}) {
           <Form.Label>緯度</Form.Label>
           <Form.Control
             name="latitude"
-            value="35.655164046"
+            value={formValue.latitude}
             onChange={handleChange}
             isInvalid={!validation.latitude}
           />
@@ -170,7 +171,7 @@ function SearchForm({validation, handleChange, handleSubmit}) {
           <Form.Label>経度</Form.Label>
           <Form.Control
             name="longitude"
-            value="139.740663704"
+            value={formValue.longitude}
             onChange={handleChange}
             isInvalid={!validation.longitude}
           />
@@ -184,7 +185,7 @@ function SearchForm({validation, handleChange, handleSubmit}) {
           <Form.Control
             name="distance"
             as="select"
-            defaultValue="1km以内"
+            value={formValue.distance}
             onChange={handleChange}
           >
             <option value="1.0">1km以内</option>
