@@ -26,14 +26,21 @@ class SearchByPrefecture extends Component {
     super()
 
     this.state = {
-      prefectures: [],
-      lines: {
-        data: [],
-        formEnabled: false,
-      },
-      stations: {
-        data: [],
-        formEnabled: false,
+      form: {
+        prefectures: {
+          data: [],
+          value: '',
+        },
+        lines: {
+          data: [],
+          value: '',
+          formEnabled: false,
+        },
+        stations: {
+          data: [],
+          value: '',
+          formEnabled: false,
+        },
       },
       map: {
         station: null,
@@ -42,108 +49,90 @@ class SearchByPrefecture extends Component {
     }
   }
 
-  handleChange = (event) => {
+  handleChangeOnPrefectureDropdown = async(event) => {
     const value = event.target.value;
-    const name = event.target.name;
+    const {form} = this.state;
 
-    if (name === 'prefecture') {
-      this.setState({
-        lines: {
-          data: [],
-          formEnabled: false
-        },
-        stations: {
-          data: [],
-          formEnabled: false
-        }
-      });
+    form.prefectures.value = value;
 
-      if (value !== '') {
-        this.fetchLines(value);
-      }
-    } else if(name === 'line') {
-      if (value === '') {
-        this.setState({
-          stations: {
-            data: [],
-            formEnabled: false
-          }
-        });
-      } else {
-        this.fetchStations(value);
-      }
-    } else {
-      if (value === '') {
-        this.setState({
-          map: {
-            station: null,
-            render: false
-          }
-        });
-      } else {
-        const index = event.target.selectedIndex;
-        const station = this.state.stations.data[index - 1];
+    if (value !== '') {
+      const apiUri = `/ekidata/api/v1.0/prefectures/${value}/lines`;
 
-        this.setState({
-          map: {
-            station: station,
-            render: true
+      await fetch(apiUri)
+        .then(response => response.json())
+        .then((data) => {
+          if ('lines' in data) {
+            form.lines.data = data.lines;
+            form.lines.formEnabled = true;
           }
-        });
-      }
+        })
+        .catch((error) => alert(error.message));
     }
+
+    this.setState({form});
   }
 
-  fetchLines = (prefectureId) => {
-    const apiUri = `/ekidata/api/v1.0/prefectures/${prefectureId}/lines`;
+  handleChangeOnLineDropdown = async(event) => {
+    const value = event.target.value;
+    const {form} = this.state;
 
-    fetch(apiUri)
-    .then(response => response.json())
-    .then((data) => {
-      if ('lines' in data) {
-        this.setState({
-          lines: {
-            data: data.lines,
-            formEnabled: true
+    form.lines.value = value;
+
+    if (value !== '') {
+      const apiUri = `/ekidata/api/v1.0/lines/${value}/stations`;
+
+      await fetch(apiUri)
+        .then(response => response.json())
+        .then((data) => {
+          if ('stations' in data) {
+            form.stations.data = data.stations;
+            form.stations.formEnabled = true;
           }
-        });
+        })
+        .catch((error) => alert(error.message));
       }
-    })
-    .catch((error) => alert(error.message));
+
+    this.setState({form});
   }
 
-  fetchStations = (lineId) => {
-    const apiUri = `/ekidata/api/v1.0/lines/${lineId}/stations`;
+  handleChangeOnStationDropdown = (event) => {
+    const value = event.target.value;
+    const {form, map} = this.state;
 
-    fetch(apiUri)
-    .then(response => response.json())
-    .then((data) => {
-      if ('stations' in data) {
-        this.setState({
-          stations: {
-            data: data.stations,
-            formEnabled: true
-          }
-        });
-      }
-    })
-    .catch((error) => alert(error.message));
+    form.stations.value = value;
+
+    if (value !== '') {
+      const index = event.target.selectedIndex;
+      map.station = form.stations.data[index - 1];
+      map.render = true;
+    }
+
+    this.setState({form, map});
   }
 
   componentDidMount() {
     fetch(prefectureApiUri)
-    .then(response => response.json())
-    .then((data) => {
-      if ('prefectures' in data) {
-        this.setState({prefectures: data.prefectures})
-      }
-    })
-    .catch((error) => alert(error.message));
+      .then(response => response.json())
+      .then((data) => {
+        if ('prefectures' in data) {
+          const {prefectures} = data;
+          const {form} = this.state;
+          form.prefectures.data = prefectures;
+
+          this.setState({form})
+        }
+      })
+      .catch((error) => alert(error.message));
   }
 
   render() {
-    const {prefectures, lines, stations} = this.state;
+    const {prefectures, lines, stations} = this.state.form;
     const {station, render} = this.state.map;
+    const handleChange = {
+      prefecture: this.handleChangeOnPrefectureDropdown,
+      line: this.handleChangeOnLineDropdown,
+      station: this.handleChangeOnStationDropdown,
+    }
 
     return  (
       <>
@@ -156,7 +145,7 @@ class SearchByPrefecture extends Component {
               prefectures={prefectures}
               lines={lines}
               stations={stations}
-              handleChange={this.handleChange}
+              handleChange={handleChange}
             />
           </div>
         </div>
@@ -180,20 +169,20 @@ function SearchForm({prefectures, lines, stations, handleChange}) {
           <Form.Control
             as="select"
             name='prefecture'
-            defaultValue="都道府県を選択"
-            onChange={handleChange}
+            value={prefectures.value}
+            onChange={handleChange.prefecture}
           >
             <option value="">都道府県を選択</option>
-            <OptionPrefectures prefectures={prefectures}/>
+            <OptionPrefectures prefectures={prefectures.data}/>
          </Form.Control>
         </Form.Group>
         <Form.Group as={Col}>
           <Form.Control
             as="select"
             name='line'
-            defaultValue="路線を選択"
+            value={lines.value}
             disabled={!lines.formEnabled}
-            onChange={handleChange}
+            onChange={handleChange.line}
           >
             <option key='prefecture-0' value="">路線を選択</option>
             <OptionLines lines={lines.data}/>
@@ -203,9 +192,9 @@ function SearchForm({prefectures, lines, stations, handleChange}) {
           <Form.Control
             as="select"
             name='station'
-            defaultValue="駅を選択"
+            value={stations.value}
             disabled={!stations.formEnabled}
-            onChange={handleChange}
+            onChange={handleChange.station}
           >
             <option value="">駅を選択</option>
             <OptionStations stations={stations.data}/>

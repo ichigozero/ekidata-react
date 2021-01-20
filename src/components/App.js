@@ -12,7 +12,7 @@ class App extends Component {
   render() {
     return (
       <main role="main" className="container">
-        <BrowserRouter>
+        <BrowserRouter basename={process.env.PUBLIC_URL}>
         <Navigation/>
         <div className="mt-4 ml-4 mr-4 mb-5">
           <Switch>
